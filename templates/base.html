@@ -40,7 +40,7 @@
                             </a>
                         {% elif user.user_type == 'customer' %}
                             <a class="nav-link" href="{% url 'marketplace:customer_dashboard' %}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                <i class="fas fa-tachometer-alt me-1"></i>HOME
                             </a>
                         {% elif user.user_type == 'admin' or user.is_staff %}
                             <a class="nav-link" href="{% url 'dashboard:admin_dashboard' %}">

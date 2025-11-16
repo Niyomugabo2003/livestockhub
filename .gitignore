@@ -1,0 +1,38 @@
+# ---- PYTHON ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# ---- VIRTUAL ENVIRONMENTS ----
+venv/
+env/
+.venv/
+
+# ---- DJANGO ----
+# SQLite DB (never commit this)
+*.sqlite3
+db.sqlite3
+
+# Media uploads (images, files uploaded by users)
+media/
+
+# Static files collected for production
+staticfiles/
+
+# Local settings / secrets
+.env
+*.env
+settings_local.py
+.env.*
+
+# ---- OS / IDE ----
+.vscode/
+.idea/
+.DS_Store
+
+# ---- OTHER ----
+*.pot
+*.pyc
+*.coverage
