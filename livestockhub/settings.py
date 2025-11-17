@@ -1,15 +1,15 @@
 import os
 from pathlib import Path
+import re
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+SECRET_KEY = os.environ.get('SECRET_KEY', '6tbnRcansaIbyx3qgINX8tdPEW7neuTdYu7-9F-JAqBZkinb2CoiHe_yZZYAWOGgnr4')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.humanize', 
@@ -26,11 +26,11 @@ INSTALLED_APPS = [
     'dashboard',
 ]
 
-# Crispy forms configuration - FIXED: Remove duplicate
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -46,7 +46,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             BASE_DIR / 'templates',
-            BASE_DIR / 'marketplace' / 'templates',  # Add this
+            BASE_DIR / 'marketplace' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -63,13 +63,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'livestockhub.wsgi.application'
 
-# Database configuration for SQLite (easily switchable)
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database configuration without dj-database-url
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+
+if DATABASE_URL and DATABASE_URL.startswith('postgresql://'):
+    db_match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+    if db_match:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': db_match.group(5),
+                'USER': db_match.group(1),
+                'PASSWORD': db_match.group(2),
+                'HOST': db_match.group(3),
+                'PORT': db_match.group(4),
+            }
+        }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -83,27 +108,20 @@ TIME_ZONE = 'Africa/Kigali'
 USE_I18N = True
 USE_TZ = True
 
-# Static files - UPDATED
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-    BASE_DIR / 'marketplace' / 'static',  # Add this
+    BASE_DIR / 'marketplace' / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Custom user model
 AUTH_USER_MODEL = 'accounts.User'
-
-# Login URLs
 LOGIN_REDIRECT_URL = 'marketplace:home'
 LOGIN_URL = 'accounts:login'
 LOGOUT_REDIRECT_URL = 'marketplace:home'
-
-# Email backend for notifications (development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
